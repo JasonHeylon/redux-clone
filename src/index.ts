@@ -1,7 +1,7 @@
 type Reducer<T> = (prevState: T, action: IAction) => T;
-type ReducerList = {
-  [namespace: string]: Reducer<any>;
-};
+// type ReducerList = {
+//   [namespace: string]: Reducer<any>;
+// };
 interface IAction {
   type: string;
   payload?: any;
@@ -11,11 +11,11 @@ interface IStore<T> {
   getState: () => T | {};
   dispatch: (action: IAction) => void;
   subscribe: (listener: Function) => Function;
-  replaceReducer: (nextReducer: Reducer) => void;
+  replaceReducer: (nextReducer: Reducer<T>) => void;
 }
 
-export function createStore<T>(reducer: Reducer<T>, preloadState?: T, enhancer?: any): IStore<T> {
-  let state: T = preloadState ? { ...preloadState } : {};
+export function createStore<T>(reducer: Reducer<T>, preloadState?: T): IStore<T> {
+  let state: T = preloadState ? { ...preloadState } : ({} as T);
   const subscribers: Array<Function> = [];
   let currentReducer = reducer;
 
