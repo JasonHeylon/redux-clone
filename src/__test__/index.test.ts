@@ -13,7 +13,7 @@ describe('createStore', () => {
   });
 });
 
-describe('dispatch and subscribe', () => {
+describe('dispatch, subscribe and replaceReducer in store', () => {
   const reducer = (preveState, action) => {
     if (action.type === 'INCREMENT') {
       return { ...preveState, counter: preveState.counter + 1 };
@@ -51,5 +51,24 @@ describe('dispatch and subscribe', () => {
 
     store.dispatch({ type: 'INCREMENT' });
     expect(subscriber.mock.calls.length).toBe(1);
+  });
+
+  it('should use new reducer after call replace reducer', () => {
+    const originalReducer = jest.fn().mockImplementation((state) => state);
+    const store = createStore(originalReducer, { counter: 0 });
+
+    const newRedcuer = jest.fn().mockImplementation((...args) => {
+      return reducer(...args);
+    });
+
+    store.dispatch({ type: 'INCREMENT' });
+    expect(store.getState()).toEqual({ counter: 0 });
+    expect(originalReducer.mock.calls.length).toEqual(1);
+    store.replaceReducer(newRedcuer);
+
+    store.dispatch({ type: 'INCREMENT' });
+    expect(originalReducer.mock.calls.length).toEqual(1);
+    expect(store.getState()).toEqual({ counter: 1 });
+    expect(newRedcuer.mock.calls.length).toEqual(1);
   });
 });

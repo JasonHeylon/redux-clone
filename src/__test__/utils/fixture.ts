@@ -1,3 +1,3 @@
-export function emptyReducer() {
-  return {};
+export function emptyReducer(prevState, action) {
+  return prevState;
 }
