@@ -38,4 +38,18 @@ describe('dispatch and subscribe', () => {
     store.dispatch({ type: 'INCREMENT' });
     expect(subscriber.mock.calls.length).toBe(2);
   });
+
+  it('should return unscribe function when call subscribe', () => {
+    const store = createStore(reducer, { counter: 0 });
+    const subscriber = jest.fn();
+    const unscribe = store.subscribe(subscriber);
+
+    store.dispatch({ type: 'INCREMENT' });
+    expect(subscriber.mock.calls.length).toBe(1);
+
+    unscribe();
+
+    store.dispatch({ type: 'INCREMENT' });
+    expect(subscriber.mock.calls.length).toBe(1);
+  });
 });

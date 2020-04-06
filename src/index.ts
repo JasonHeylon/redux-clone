@@ -10,7 +10,7 @@ interface IAction {
 interface IStore<T> {
   getState: () => T | {};
   dispatch: (action: IAction) => void;
-  subscribe: (listener: Function) => void;
+  subscribe: (listener: Function) => Function;
   // replaceReducer: (nextReducer: Reducer) => void;
 }
 
@@ -27,8 +27,12 @@ export function createStore<T>(reducer: Reducer<T>, preloadState?: T, enhancer?:
       state = newState;
       subscribers.forEach((subscriber) => subscriber());
     },
-    subscribe(listener): void {
+    subscribe(listener): Function {
       if (subscribers.indexOf(listener) < 0) subscribers.push(listener);
+
+      return (): void => {
+        subscribers.splice(subscribers.indexOf(this.subscribe), 1);
+      };
     },
   };
 }
