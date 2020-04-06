@@ -41,6 +41,14 @@ export function createStore<T>(reducer: Reducer<T>, preloadState?: T): IStore<T>
   };
 }
 
-// export function combinReducers(reducers: ReducerList) {
-
-// }
+export function combineReducers(reducers: ReducerList): Reducer {
+  return (state, action) => {
+    Object.keys(reducers).forEach((key) => {
+      state = {
+        ...state,
+        [key]: reducers[key](state[key], action),
+      };
+    });
+    return state;
+  };
+}
