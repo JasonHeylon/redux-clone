@@ -33,7 +33,9 @@ describe('dispatch and subscribe', () => {
     store.subscribe(subscriber);
 
     store.dispatch({ type: 'INCREMENT' });
-
     expect(subscriber.mock.calls.length).toBe(1);
+
+    store.dispatch({ type: 'INCREMENT' });
+    expect(subscriber.mock.calls.length).toBe(2);
   });
 });

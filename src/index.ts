@@ -15,14 +15,21 @@ interface IStore<T> {
 }
 
 export function createStore<T>(reducer: Reducer<T>, preloadState?: T, enhancer?: any): IStore<T> {
-  const state = preloadState ? { ...preloadState } : {};
+  let state: T = preloadState ? { ...preloadState } : {};
+  const subscribers: Array<Function> = [];
 
   return {
     getState(): T | {} {
       return state;
     },
-    dispatch(action) {},
-    subscribe(listener) {},
+    dispatch(action): void {
+      const newState = reducer(state, action);
+      state = newState;
+      subscribers.forEach((subscriber) => subscriber());
+    },
+    subscribe(listener): void {
+      if (subscribers.indexOf(listener) < 0) subscribers.push(listener);
+    },
   };
 }
 
