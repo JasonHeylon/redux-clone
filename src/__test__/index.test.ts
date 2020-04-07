@@ -1,4 +1,4 @@
-import { createStore, combineReducers, applyMiddleware, bindActionCreator } from '..';
+import { createStore, combineReducers, applyMiddleware, bindActionCreator, compose } from '..';
 import { emptyReducer } from './utils/fixture';
 
 const INCREMENT_ACTION_TYPE = 'INCREMENT';
@@ -187,5 +187,46 @@ describe('bindActionCreators', () => {
     increment(2);
     expect(mockedDispatch.mock.calls.length).toBe(2);
     expect(store.getState()).toEqual({ counter: 3 });
+  });
+});
+
+describe('compose', () => {
+  let mockedMiddleware;
+  const middleware = (getState: Function, dispatch: Function) => {
+    return (next) =>
+      (mockedMiddleware = jest.fn().mockImplementation((action) => {
+        next(action);
+      }));
+  };
+
+  const calledEnhancers = [];
+
+  const firstEnhancer = (store) => {
+    store.enhancedFunctionFirst = () => {
+      return 'first enhancedStore';
+    };
+    calledEnhancers.push('first');
+    return store;
+  };
+  const secondEnhancer = (store) => {
+    store.enhancedFunctionSecond = () => {
+      return 'second enhancedStore';
+    };
+    calledEnhancers.push('second');
+    return store;
+  };
+
+  it('will call enhancers in order', () => {
+    const store = createStore(emptyReducer, {}, compose(secondEnhancer, firstEnhancer));
+
+    expect(store.enhancedFunctionFirst).toBeTruthy();
+    expect(store.enhancedFunctionFirst()).toBe('first enhancedStore');
+
+    expect(store.enhancedFunctionSecond).toBeTruthy();
+    expect(store.enhancedFunctionSecond()).toEqual('second enhancedStore');
+
+    ['first', 'second'].forEach((num: number, index: number) => {
+      expect(calledEnhancers[index]).toBe(num);
+    });
   });
 });

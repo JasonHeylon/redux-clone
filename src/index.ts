@@ -80,3 +80,9 @@ export function bindActionCreator(creator, dispatch): Function {
     dispatch(creator(...args));
   };
 }
+
+export function compose(...storeEnhancer: Array<Function>): Function {
+  const enhancers = storeEnhancer.slice();
+  enhancers.reverse();
+  return (store: any): any => enhancers.reduce((acc, curr) => curr(acc), store);
+}
