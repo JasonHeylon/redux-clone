@@ -14,20 +14,25 @@ interface IStore<T> {
   replaceReducer: (nextReducer: Reducer<T>) => void;
 }
 
-export function createStore<T>(reducer: Reducer<T>, preloadState?: T): IStore<T> {
+export function createStore<T>(reducer: Reducer<T>, preloadState?: T, enhancer?: Function): IStore<T> {
   let state: T = preloadState ? { ...preloadState } : ({} as T);
   const subscribers: Array<Function> = [];
   let currentReducer = reducer;
 
-  return {
-    getState(): T | {} {
-      return state;
-    },
-    dispatch(action): void {
-      const newState = currentReducer(state, action);
-      state = newState;
-      subscribers.forEach((subscriber) => subscriber());
-    },
+  const getState = (): T | {} => {
+    return state;
+  };
+
+  const dispatch = (action): void => {
+    const newState = currentReducer(state, action);
+    state = newState;
+
+    subscribers.forEach((subscriber) => subscriber());
+  };
+
+  let store = {
+    getState,
+    dispatch,
     subscribe(listener): Function {
       if (subscribers.indexOf(listener) < 0) subscribers.push(listener);
 
@@ -39,6 +44,11 @@ export function createStore<T>(reducer: Reducer<T>, preloadState?: T): IStore<T>
       currentReducer = newReducer;
     },
   };
+  if (enhancer) {
+    store = enhancer(store);
+  }
+
+  return store;
 }
 
 export function combineReducers(reducers: ReducerList): Reducer {
@@ -50,5 +60,23 @@ export function combineReducers(reducers: ReducerList): Reducer {
       };
     });
     return state;
+  };
+}
+
+export function applyMiddleware(...middlewares): Function {
+  return (store) => {
+    middlewares = middlewares.slice();
+    middlewares.reverse();
+    let dispatch = store.dispatch;
+
+    middlewares.forEach((middleware) => (dispatch = middleware(store)(dispatch)));
+
+    return { ...store, dispatch: dispatch };
+  };
+}
+
+export function bindActionCreator(creator, dispatch): Function {
+  return (...args: any[]): void => {
+    dispatch(creator(...args));
   };
 }
